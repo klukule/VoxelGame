@@ -1,0 +1,5 @@
+shader Shaders/Basic.shader
+
+texture0 Textures/FallBack.png
+
+uniform number u_ColorMap 0

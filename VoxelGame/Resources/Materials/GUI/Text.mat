@@ -1,0 +1,5 @@
+shader Shaders/GUI/Text.shader
+
+texture0 Textures/FallBack.png
+
+uniform number u_Texture 0

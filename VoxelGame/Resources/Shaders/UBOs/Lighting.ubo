@@ -1,0 +1,8 @@
+﻿layout(std140) uniform U_Lighting
+{
+    vec4 AmbientColor;  //16
+    vec4 SunDirection;  //16
+    vec4 SunColor;      //16
+    float SunStrength;  //4
+
+} Lighting;

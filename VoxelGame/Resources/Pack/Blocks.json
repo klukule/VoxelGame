@@ -1,0 +1,268 @@
+{
+  "BlocksPerRow": 5,
+  "BlocksPerColumn": 3,
+  "Blocks": [
+    {
+      "Id": "Block_Dirt",
+      "Top": {
+        "X": 1,
+        "Y": 0
+      },
+      "Bottom": {
+        "X": 1,
+        "Y": 0
+      },
+      "Left": {
+        "X": 1,
+        "Y": 0
+      },
+      "Right": {
+        "X": 1,
+        "Y": 0
+      },
+      "Front": {
+        "X": 1,
+        "Y": 0
+      },
+      "Back": {
+        "X": 1,
+        "Y": 0
+      }
+    },
+    {
+      "Id": "Block_Grass",
+
+      "Top": {
+        "X": 4,
+        "Y": 0
+      },
+      "Bottom": {
+        "X": 1,
+        "Y": 0
+      },
+      "Left": {
+        "X": 2,
+        "Y": 0
+      },
+      "Right": {
+        "X": 2,
+        "Y": 0
+      },
+      "Front": {
+        "X": 2,
+        "Y": 0
+      },
+      "Back": {
+        "X": 2,
+        "Y": 0
+      },
+
+      "TopMask": {
+        "X": 4,
+        "Y": 0
+      },
+      "LeftMask": {
+        "X": 3,
+        "Y": 0
+      },
+      "RightMask": {
+        "X": 3,
+        "Y": 0
+      },
+      "FrontMask": {
+        "X": 3,
+        "Y": 0
+      },
+      "BackMask": {
+        "X": 3,
+        "Y": 0
+      }
+    },
+    {
+      "Id": "Block_Stone",
+      "Top": {
+        "X": 0,
+        "Y": 1
+      },
+      "Bottom": {
+        "X": 0,
+        "Y": 1
+      },
+      "Left": {
+        "X": 0,
+        "Y": 1
+      },
+      "Right": {
+        "X": 0,
+        "Y": 1
+      },
+      "Front": {
+        "X": 0,
+        "Y": 1
+      },
+      "Back": {
+        "X": 0,
+        "Y": 1
+      }
+    },
+    {
+      "Id": "Block_Log_Oak",
+      "Top": {
+        "X": 2,
+        "Y": 1
+      },
+      "Bottom": {
+        "X": 2,
+        "Y": 1
+      },
+      "Left": {
+        "X": 1,
+        "Y": 1
+      },
+      "Right": {
+        "X": 1,
+        "Y": 1
+      },
+      "Front": {
+        "X": 1,
+        "Y": 1
+      },
+      "Back": {
+        "X": 1,
+        "Y": 1
+      }
+    },
+    {
+      "Id": "Block_Leaves_Oak",
+      "Top": {
+        "X": 3,
+        "Y": 1
+      },
+      "Bottom": {
+        "X": 3,
+        "Y": 1
+      },
+      "Left": {
+        "X": 3,
+        "Y": 1
+      },
+      "Right": {
+        "X": 3,
+        "Y": 1
+      },
+      "Front": {
+        "X": 3,
+        "Y": 1
+      },
+      "Back": {
+        "X": 3,
+        "Y": 1
+      },
+      "TopMask": {
+        "X": 3,
+        "Y": 1
+      },
+      "BottomMask": {
+        "X": 3,
+        "Y": 1
+      },
+      "LeftMask": {
+        "X": 3,
+        "Y": 1
+      },
+      "RightMask": {
+        "X": 3,
+        "Y": 1
+      },
+      "FrontMask": {
+        "X": 3,
+        "Y": 1
+      },
+      "BackMask": {
+        "X": 3,
+        "Y": 1
+      }
+    },
+    {
+      "Id": "Block_Sand",
+      "Top": {
+        "X": 4,
+        "Y": 1
+      },
+      "Bottom": {
+        "X": 4,
+        "Y": 1
+      },
+      "Left": {
+        "X": 4,
+        "Y": 1
+      },
+      "Right": {
+        "X": 4,
+        "Y": 1
+      },
+      "Front": {
+        "X": 4,
+        "Y": 1
+      },
+      "Back": {
+        "X": 4,
+        "Y": 1
+      }
+    },
+    {
+      "Id": "Block_Water",
+      "Top": {
+        "X": 0,
+        "Y": 2
+      },
+      "Bottom": {
+        "X": 0,
+        "Y": 2
+      },
+      "Left": {
+        "X": 0,
+        "Y": 2
+      },
+      "Right": {
+        "X": 0,
+        "Y": 2
+      },
+      "Front": {
+        "X": 0,
+        "Y": 2
+      },
+      "Back": {
+        "X": 0,
+        "Y": 2
+      }
+    },
+    {
+      "Id": "Block_Oak_Wood_Planks",
+      "Top": {
+        "X": 1,
+        "Y": 2
+      },
+      "Bottom": {
+        "X": 1,
+        "Y": 2
+      },
+      "Left": {
+        "X": 1,
+        "Y": 2
+      },
+      "Right": {
+        "X": 1,
+        "Y": 2
+      },
+      "Front": {
+        "X": 1,
+        "Y": 2
+      },
+      "Back": {
+        "X": 1,
+        "Y": 2
+      }
+    }
+  ]
+}
