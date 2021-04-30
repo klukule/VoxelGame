@@ -431,11 +431,9 @@ namespace VoxelGame.UI
                     }
                 }
 
+                if (_textCarret > text.Length)
+                    _textCarret = text.Length;
                 theText = text.Insert(_textCarret, "_");
-            }
-            else
-            {
-                _textCarret = 0;
             }
 
             Color4 startingColor = style.Normal.TextColor;

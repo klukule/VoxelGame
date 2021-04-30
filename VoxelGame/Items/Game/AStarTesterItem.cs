@@ -81,23 +81,6 @@ namespace VoxelGame.Items
 
     public class AStarPathFinder
     {
-        private static readonly Vector3[] Neighbors =
-        {
-            Vector3.UnitX,
-            -Vector3.UnitX,
-            Vector3.UnitZ,
-            -Vector3.UnitZ,
-            Vector3.UnitY,
-            -Vector3.UnitY
-        };
-
-        private static readonly Vector3[][] DiagonalNeighbors =
-        {
-            new[] { Vector3.UnitX, Vector3.UnitZ },
-            new[] { Vector3.UnitX, -Vector3.UnitZ },
-            new[] { -Vector3.UnitX, Vector3.UnitZ },
-            new[] { -Vector3.UnitX, -Vector3.UnitZ },
-        };
 
         private static List<Vector3> TracePath(Vector3 start, Vector3 goal, Dictionary<Vector3, Vector3> parents)
         {
@@ -124,41 +107,34 @@ namespace VoxelGame.Items
 
         private static IEnumerable<Vector3> GetNeighbors(Vector3 current)
         {
-            /*for (int x = -1; x <= 1; x++)
+            // Check all neighbors
+            for (int x = -1; x <= 1; x++)
                 for (int y = -1; y <= 1; y++)
                     for (int z = -1; z <= 1; z++)
                     {
                         if (x == 0 && y == 0 && z == 0) continue;
                         var next = current + new Vector3(x, y, z);
-                        if (CanOccupyVoxel(next))
-                            yield return next;
-                    }*/
+                        // Straight
+                        if (x == 0 || z == 0)
+                        {
+                            if (CanOccupyVoxel(next) &&
+                                CanOccupyVoxel(next + Vector3.UnitY) &&
+                                !CanOccupyVoxel(next - Vector3.UnitY)
+                                )
+                                yield return next;
+                        }
+                        else // Diagonal
+                        {
 
-            for (int y = -1; y <= 1; y++)
-            {
-                var yv = new Vector3(0, y, 0);
-
-                // walk straight
-                for (int i = 0; i < Neighbors.Length; i++)
-                {
-                    var next = Neighbors[i] + current + yv;
-                    if (CanOccupyVoxel(next) && CanOccupyVoxel(next + Vector3.UnitY) && !CanOccupyVoxel(next - Vector3.UnitY))
-                        yield return next;
-                }
-
-                // Diagonals require additional checks to avoid valking through walls
-                for (int i = 0; i < DiagonalNeighbors.Length; i++)
-                {
-                    var pair = DiagonalNeighbors[i];
-                    var next = pair[0] + pair[1] + current + yv;
-
-                    if (CanOccupyVoxel(next) && !CanOccupyVoxel(next - Vector3.UnitY) && CanOccupyVoxel(next + Vector3.UnitY)
-                        && CanOccupyVoxel(pair[0] + current + yv)
-                        && CanOccupyVoxel(pair[1] + current + yv))
-                        yield return next;
-                }
-            }
-
+                            if (CanOccupyVoxel(next) &&
+                                CanOccupyVoxel(next + Vector3.UnitY) &&
+                                !CanOccupyVoxel(next - Vector3.UnitY) &&
+                                CanOccupyVoxel(new Vector3(current.X + x, current.Y, current.Z)) && // Additional check on one axis in direction of movement
+                                CanOccupyVoxel(new Vector3(current.X, current.Y, current.Z + z))    // Additional check on second axis in direction of movement
+                                )
+                                yield return next;
+                        }
+                    }
         }
 
         public static List<Vector3> FindPath(Vector3 start, Vector3 end, float maxCost = 120)
@@ -204,32 +180,22 @@ namespace VoxelGame.Items
 
     public class PriorityQueue<T>
     {
-        private List<Tuple<T, double>> elements = new List<Tuple<T, double>>();
+        private readonly List<Tuple<T, double>> _elements = new List<Tuple<T, double>>();
 
-        public int Count
-        {
-            get { return elements.Count; }
-        }
+        public int Count => _elements.Count;
 
-        public void Enqueue(T item, double priority)
-        {
-            elements.Add(Tuple.Create(item, priority));
-        }
+        public void Enqueue(T item, double priority) => _elements.Add(Tuple.Create(item, priority));
 
         public T Dequeue()
         {
             int bestIndex = 0;
 
-            for (int i = 0; i < elements.Count; i++)
-            {
-                if (elements[i].Item2 < elements[bestIndex].Item2)
-                {
+            for (int i = 0; i < _elements.Count; i++)
+                if (_elements[i].Item2 < _elements[bestIndex].Item2)
                     bestIndex = i;
-                }
-            }
 
-            T bestItem = elements[bestIndex].Item1;
-            elements.RemoveAt(bestIndex);
+            T bestItem = _elements[bestIndex].Item1;
+            _elements.RemoveAt(bestIndex);
             return bestItem;
         }
     }
