@@ -19,6 +19,7 @@ namespace VoxelGame.Items
             DIRT = new BlockItem(GameBlocks.DIRT);
             GLOWSTONE = new BlockItem(GameBlocks.GLOWSTONE);
             ASTAR = new AStarTesterItem();
+            ENEMY_EGG = new EnemySpawnEggItem();
         }
 
         public static BlockItem DIRT { get; private set; }
@@ -34,5 +35,6 @@ namespace VoxelGame.Items
         public static BlockItem PLANKS_OAK { get; private set; }
         public static BlockItem GLOWSTONE { get; private set; }
         public static AStarTesterItem ASTAR { get; private set; }
+        public static EnemySpawnEggItem ENEMY_EGG { get; private set; }
     }
 }

@@ -42,6 +42,11 @@ namespace VoxelGame.Entities
         public Vector3 UpVector => Mathf.GetUpFromRotation(Rotation);
 
         /// <summary>
+        /// Returns entity position aligned to full block
+        /// </summary>
+        public Vector3 BlockPosition => new Vector3((int)Position.X, (int)Position.Y, (int)Position.Z);
+
+        /// <summary>
         /// Chunk coordinates the entity is in
         /// </summary>
         public Vector2 ChunkPosition

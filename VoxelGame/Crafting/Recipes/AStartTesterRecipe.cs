@@ -10,6 +10,6 @@ namespace VoxelGame.Crafting.Recipes
     {
         public override string[] RecipeLayouts { get; } = new[] { "#" };
         public override Dictionary<char, string> ItemsKey { get; } = new Dictionary<char, string>() { { '#', GameItems.PLANKS_OAK.Key } };
-        public override CraftingRecipeOutput Output { get; } = new CraftingRecipeOutput(GameItems.ASTAR.Key, 64);
+        public override CraftingRecipeOutput Output { get; } = new CraftingRecipeOutput(GameItems.ENEMY_EGG.Key, 64);
     }
 }

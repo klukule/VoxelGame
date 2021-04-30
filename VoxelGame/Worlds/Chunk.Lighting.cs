@@ -23,7 +23,7 @@ namespace VoxelGame.Worlds
         {
             var w = WIDTH * 3;
             ushort[,,] lightmap = new ushort[w, HEIGHT, w];         // Lightmap for 3x3 chunks to propagate light across chunks... TODO: Use checked lightmap from other chunks instead?
-            Stack<Vector3> stack = new Stack<Vector3>();            // List of blocks to evaluate light propagation from
+            Queue<Vector3> queue = new Queue<Vector3>();            // List of blocks to evaluate light propagation from
 
             //////////////////////////////////////////
             // Seed the lightmap - sun & light sources
@@ -55,7 +55,7 @@ namespace VoxelGame.Worlds
                             if (block.IsEmissive)
                             {
                                 lightmap[x, y, z] = lightmap[x, y, z].SetRed((byte)(block.Emission.R * 15)).SetGreen((byte)(block.Emission.G * 15)).SetBlue((byte)(block.Emission.B * 15));
-                                stack.Push(new Vector3(x, y, z));
+                                queue.Enqueue(new Vector3(x, y, z));
                             }
                         }
                     }
@@ -71,7 +71,7 @@ namespace VoxelGame.Worlds
                     if (height < 2) continue;*/
 
                     // Lighting seed
-                    stack.Push(new Vector3(x, height, z));
+                    queue.Enqueue(new Vector3(x, height, z));
                 }
             }
 
@@ -79,9 +79,9 @@ namespace VoxelGame.Worlds
             // Propagate
             //////////////////////////////////////////
 
-            while (stack.Count > 0)
+            while (queue.Count > 0)
             {
-                var position = stack.Pop();
+                var position = queue.Dequeue();
 
                 int x = (int)position.X;                // Block X position (in 3x3 chunk local space)
                 int y = (int)position.Y;                // Block Y position (in 3x3 chunk local space)
@@ -178,7 +178,7 @@ namespace VoxelGame.Worlds
                     }
 
                     if (enqueue)
-                        stack.Push(new Vector3(x + 1, y, z));
+                        queue.Enqueue(new Vector3(x + 1, y, z));
                 }
                 ///////////////////////////////////////////////////////////////////////////////////////
                 // Propagate along X-
@@ -263,7 +263,7 @@ namespace VoxelGame.Worlds
                     }
 
                     if (enqueue)
-                        stack.Push(new Vector3(x - 1, y, z));
+                        queue.Enqueue(new Vector3(x - 1, y, z));
                 }
                 ///////////////////////////////////////////////////////////////////////////////////////
                 // Propagate along Z+
@@ -348,7 +348,7 @@ namespace VoxelGame.Worlds
                     }
 
                     if (enqueue)
-                        stack.Push(new Vector3(x, y, z + 1));
+                        queue.Enqueue(new Vector3(x, y, z + 1));
                 }
                 ///////////////////////////////////////////////////////////////////////////////////////
                 // Propagate along Z-
@@ -433,7 +433,7 @@ namespace VoxelGame.Worlds
                     }
 
                     if (enqueue)
-                        stack.Push(new Vector3(x, y, z - 1));
+                        queue.Enqueue(new Vector3(x, y, z - 1));
                 }
                 ///////////////////////////////////////////////////////////////////////////////////////
                 // Propagate along Y+
@@ -518,7 +518,7 @@ namespace VoxelGame.Worlds
                     }
 
                     if (enqueue)
-                        stack.Push(new Vector3(x, y + 1, z));
+                        queue.Enqueue(new Vector3(x, y + 1, z));
                 }
                 ///////////////////////////////////////////////////////////////////////////////////////
                 // Propagate along Y-
@@ -623,7 +623,7 @@ namespace VoxelGame.Worlds
                     }
 
                     if (enqueue)
-                        stack.Push(new Vector3(x, y - 1, z));
+                        queue.Enqueue(new Vector3(x, y - 1, z));
                 }
                 ///////////////////////////////////////////////////////////////////////////////////////
             }

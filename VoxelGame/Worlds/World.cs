@@ -463,7 +463,8 @@ namespace VoxelGame.Worlds
                         {
                             c.GenerateHeightMap();
                             c.FillBlocks();
-                            _loadedChunks.Add(c);
+                            lock (_loadedChunks)
+                                _loadedChunks.Add(c);
                         }
                         // Link with left neighbor
                         if (TryGetChunkAtPosition(wantedX - 1, wantedZ, out oChunk))

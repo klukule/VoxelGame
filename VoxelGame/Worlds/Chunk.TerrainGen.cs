@@ -97,18 +97,6 @@ namespace VoxelGame.Worlds
                     }
                 }
             }
-
-            /*using (GlowstoneDecorator decorator = new GlowstoneDecorator())
-            {
-                for (int x = 0; x < WIDTH; x++)
-                {
-                    for (int z = 0; z < WIDTH; z++)
-                    {
-                        int h = GetHeightAtBlock(x, z);
-                        decorator.DecorateAtBlock(this, x, h, z);
-                    }
-                }
-            }*/
         }
 
     }
