@@ -38,6 +38,6 @@ namespace VoxelGame.Rendering
         /// <summary>
         /// Disposes of the data
         /// </summary>
-        public void Dispose() => _mesh.Dispose();
+        public void Dispose() { } // => _mesh.Dispose();
     }
 }
