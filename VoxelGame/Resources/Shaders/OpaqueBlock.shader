@@ -8,7 +8,7 @@ layout(location = 1) in vec2 texCoord;
 layout(location = 2) in vec4 normal;
 layout(location = 3) in vec2 texCoord2;
 layout(location = 4) in vec4 vertcolor;
-layout(location = 5) in float vertLight;
+layout(location = 5) in uint vertLight;
 float lightMul = 0.0625f;
 
 uniform mat4 u_World =
@@ -23,7 +23,8 @@ out vec2 v_TexCoord2;
 out vec2 v_TexCoord;
 out vec4 v_Normal;
 out vec4 v_Color;
-out float v_Light;
+out float v_SunLight;
+out vec3 v_BlockLight;
 
 void main()
 {
@@ -33,7 +34,12 @@ void main()
 
 	v_TexCoord = texCoord;
 	v_TexCoord2 = texCoord2;
-	v_Light = vertLight * lightMul;
+
+	v_SunLight = float((vertLight >> 12) & 0xFu) * lightMul;
+	float r = float((vertLight >> 8) & 0xFu) * lightMul;
+	float g = float((vertLight >> 4) & 0xFu) * lightMul;
+	float b = float(vertLight & 0xFu) * lightMul;
+	v_BlockLight = vec3(r, g, b);
 
 	mat4 wvp = Camera.ProjectionMat * Camera.ViewMat * u_World;
 	gl_Position = wvp * position;
@@ -57,7 +63,8 @@ in vec4 v_Color;
 in vec2 v_TexCoord2;
 in vec2 v_TexCoord;
 in vec4 v_Normal;
-in float v_Light;
+in float v_SunLight;
+in vec3 v_BlockLight;
 
 void main()
 {
@@ -67,8 +74,8 @@ void main()
 
 	vec4 sunColor = Lighting.SunStrength * Lighting.SunColor;
 
-	vec4 pxLight = (sunColor * (pow(v_Light + 0.1, 2)));
 
+	vec4 pxLight = (sunColor * (pow(v_SunLight + 0.1, 2))) + vec4(v_BlockLight, 1);
 	if (v_TexCoord2 != vec2(-1, -1))
 	{
 		vec4 mask = texture(u_ColorMap, v_TexCoord2);

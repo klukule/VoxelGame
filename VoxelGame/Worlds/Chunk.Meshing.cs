@@ -35,7 +35,7 @@ namespace VoxelGame.Worlds
             List<Vector3> normals = new List<Vector3>();
             List<Vector2> uv2 = new List<Vector2>();
             List<Vector4> col = new List<Vector4>();
-            List<float> light = new List<float>();
+            List<uint> light = new List<uint>();
 
             List<Vector3> verticesWater = new List<Vector3>();
             List<Vector2> uvsWater = new List<Vector2>();
@@ -49,180 +49,9 @@ namespace VoxelGame.Worlds
 
             Block workingBlock = null;
 
-            List<Vector3> toPropagate = new List<Vector3>();
-            int w = WIDTH * 3;
-            byte[,,] lightmap = new byte[w, HEIGHT, w];
 
-            /////////////////////////////////////////
-            /// LIGHT PROPAGATION
-            /////////////////////////////////////////
 
-            // Calculate light propagation seeds in 3x3 chunk range (to propagate light across chunk boundaries
-            for (int x = 0; x < w; ++x)
-            {
-                for (int z = 0; z < w; ++z)
-                {
-                    if ((x % 47) * (z % 47) == 0) //filters outer edges
-                    {
-                        //Debug.Log($"these should at least 0 or 47  ->  {x} {z}"); 
-                        for (int yy = 0; yy < HEIGHT; yy++) //dont do outer edges
-                        {
-                            lightmap[x, yy, z] = 15; //set all edges to 15 to stop tracing at edges
-                        }
-                        continue;
-                    }
-                    int worldX = x - WIDTH;
-                    int worldZ = z - WIDTH;
-                    int height = Math.Max(0, GetHeightAtBlock(worldX, worldZ));
-
-                    // Set air to max brightness
-                    for (int y = height; y < HEIGHT; y++)
-                    {
-                        //Do manually here!
-                        lightmap[x, y, z] = 15; //set all edges to 15 to stop tracing at edges
-                    }
-
-                    // Get maximum height with neighbors
-                    if (x < w - 2) height = Math.Max(height, GetHeightAtBlock(worldX + 1, worldZ));
-                    if (x > 1) height = Math.Max(height, GetHeightAtBlock(worldX - 1, worldZ));
-                    if (z < w - 2) height = Math.Max(height, GetHeightAtBlock(worldX, worldZ + 1));
-                    if (z > 1) height = Math.Max(height, GetHeightAtBlock(worldX, worldZ - 1));
-
-                    // Get minimum fully lit height
-                    height = Math.Min(height + 1, HEIGHT - 1);
-                    if (height < 2) continue; // Skip seeding below certain height
-
-                    // Lighting seed
-                    toPropagate.Add(new Vector3(x, height, z));
-                }
-            }
-
-            // Propagate each seed
-            while (toPropagate.Count > 0)
-            {
-                Vector3 position = toPropagate.Last();
-                toPropagate.RemoveAt(toPropagate.Count - 1);
-                int x = (int)position.X;
-                int y = (int)position.Y;
-                int z = (int)position.Z;
-                int worldX = x - WIDTH;
-                int worldZ = z - WIDTH;
-
-                byte lightVal = lightmap[x, y, z];
-                byte adjLightVal = 0;
-                short adjBlockId = 0;
-
-                // Propagate to X+ (Right)
-                if (x < w - 1)
-                {
-                    adjLightVal = lightmap[x + 1, y, z];
-                    if (adjLightVal < lightVal - 1) // If new light value is more than current
-                    {
-                        adjBlockId = GetBlockID(worldX + 1, y, worldZ);
-                        if (adjBlockId == 0) // If block is air, propagate and set as seed
-                        {
-                            lightmap[x + 1, y, z] = (byte)(lightVal - 1);
-                            toPropagate.Add(new Vector3(x + 1, y, z));
-                        }
-                    }
-                }
-
-                // Propagate to X- (Left)
-                if (x > 0)
-                {
-                    adjLightVal = lightmap[x - 1, y, z];
-                    if (adjLightVal < lightVal - 1) // If new light value is more than current
-                    {
-                        adjBlockId = GetBlockID(worldX - 1, y, worldZ);
-                        if (adjBlockId == 0) // If block is air, propagate and set as seed
-                        {
-                            lightmap[x - 1, y, z] = (byte)(lightVal - 1);
-                            toPropagate.Add(new Vector3(x - 1, y, z));
-                        }
-                    }
-                }
-
-                // Propagate to Y- (Down)
-                if (y > 0)
-                {
-                    adjBlockId = GetBlockID(worldX, y - 1, worldZ);
-                    if (adjBlockId == 0) // If Air
-                    {
-                        if (lightVal == 15) // If maximum light propagate further
-                        {
-                            lightmap[x, y - 1, z] = (byte)(lightVal);
-                            toPropagate.Add(new Vector3(x, y - 1, z));
-                        }
-                        else // Else propagate only if new vlaue is bigger
-                        {
-                            adjLightVal = lightmap[x, y - 1, z];
-                            if (adjLightVal < lightVal - 1)
-                            {
-                                lightmap[x, y - 1, z] = (byte)(lightVal - 1);
-                                toPropagate.Add(new Vector3(x, y - 1, z));
-                            }
-                        }
-                    }
-                    else if (adjBlockId != -1) // Else if any non-air and existing block
-                    {
-                        sbyte op = BlockDatabase.GetBlock(adjBlockId).Opacity; // Get opacity
-                        if (op < 15) // If (semi-)transparent block
-                        {
-                            // Propagate light value lowered by the about of transparency and seed
-                            op = (sbyte)(lightVal - op);
-                            op = Math.Max(op, (sbyte)0);
-                            lightmap[x, y - 1, z] = (byte)op;
-                            toPropagate.Add(new Vector3(x, y - 1, z));
-                        }
-                    }
-                }
-
-                // Propagate to Y+ (Up)
-                if (y < HEIGHT - 1)
-                {
-                    adjLightVal = lightmap[x, y + 1, z];
-                    if (adjLightVal < lightVal - 1) // If new light value is more than current
-                    {
-                        adjBlockId = GetBlockID(worldX, y + 1, worldZ);
-                        if (adjBlockId == 0) // If block is air, propagate and set as seed
-                        {
-                            lightmap[x, y + 1, z] = (byte)(lightVal - 1);
-                            toPropagate.Add(new Vector3(x, y + 1, z));
-                        }
-                    }
-                }
-
-                // Propagate Z+ (Front)
-                if (z < w - 1)
-                {
-                    adjLightVal = lightmap[x, y, z + 1];
-                    if (adjLightVal < lightVal - 1) // If new light value is more than current
-                    {
-                        adjBlockId = GetBlockID(worldX, y, worldZ + 1);
-                        if (adjBlockId == 0) // If block is air, propagate and set as seed
-                        {
-                            lightmap[x, y, z + 1] = (byte)(lightVal - 1);
-                            toPropagate.Add(new Vector3(x, y, z + 1));
-                        }
-                    }
-                }
-
-                // Propagate Z- (Back)
-                if (z > 0)
-                {
-                    adjLightVal = lightmap[x, y, z - 1];
-                    if (adjLightVal < lightVal - 1) // If new light value is more than current
-                    {
-                        adjBlockId = GetBlockID(worldX, y, worldZ - 1);
-                        if (adjBlockId == 0)  // If block is air, propagate and set as seed
-                        {
-                            lightmap[x, y, z - 1] = (byte)(lightVal - 1);
-                            toPropagate.Add(new Vector3(x, y, z - 1));
-                        }
-                    }
-                }
-            }
-
+            var lightmap = _lightmap;
 
             /////////////////////////////////////////
             /// MESH CONSTRUCTION
@@ -298,28 +127,11 @@ namespace VoxelGame.Worlds
                 vertices.Add(new Vector3(0 + x, 0 + y, 1 + z));
                 vertices.Add(new Vector3(1 + x, 0 + y, 1 + z));
 
-                int lx = x + WIDTH;
-                int lz = z + WIDTH;
-                int ly = y;
-
-                byte lightR = lightmap[lx + 1, ly, lz];
-                byte lightL = lightmap[lx - 1, ly, lz];
-                byte lightF = lightmap[lx, ly, lz + 1];
-                byte lightB = lightmap[lx, ly, lz - 1];
-                byte lightU = (ly == 255 ? (byte)15 : lightmap[lx, ly + 1, lz]);
-                byte lightD = (ly == 0 ? (byte)15 : lightmap[lx, ly - 1, lz]);
-                int b = (ly == 0 ? 0 : 1);
-                int t = (ly == 255 ? 0 : 1);
-                byte br = (byte)((lightmap[lx, ly, lz + 1] + lightmap[lx - 1, ly, lz + 1] + lightmap[lx, ly - b, lz + 1] + lightmap[lx - 1, ly - b, lz + 1]) / 4);
-                byte tr = (byte)((lightmap[lx, ly, lz + 1] + lightmap[lx - 1, ly, lz + 1] + lightmap[lx, ly + t, lz + 1] + lightmap[lx - 1, ly + t, lz + 1]) / 4);
-                byte tl = (byte)((lightmap[lx, ly, lz + 1] + lightmap[lx + 1, ly, lz + 1] + lightmap[lx, ly + t, lz + 1] + lightmap[lx + 1, ly + t, lz + 1]) / 4);
-                byte bl = (byte)((lightmap[lx, ly, lz + 1] + lightmap[lx + 1, ly, lz + 1] + lightmap[lx, ly - b, lz + 1] + lightmap[lx + 1, ly - b, lz + 1]) / 4);
-
-                //float lightVal = lightmap[x + WIDTH, y, z + WIDTH + 1];//GetBlockLight(x, y, z + 1);
-                light.Add(tl);
-                light.Add(tr);
-                light.Add(br);
-                light.Add(bl);
+                uint lightVal = lightmap[x + WIDTH, y, z + WIDTH + 1];
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
 
                 uvs.Add(new Vector2(workingBlock.Front.UV1.X, workingBlock.Front.UV1.Y));
                 uvs.Add(new Vector2(workingBlock.Front.UV1.Width, workingBlock.Front.UV1.Y));
@@ -360,28 +172,11 @@ namespace VoxelGame.Worlds
                 vertices.Add(new Vector3(1 + x, 0 + y, 0 + z));
                 vertices.Add(new Vector3(0 + x, 0 + y, 0 + z));
 
-                int lx = x + WIDTH;
-                int lz = z + WIDTH;
-                int ly = y;
-
-                byte lightR = lightmap[lx + 1, ly, lz];
-                byte lightL = lightmap[lx - 1, ly, lz];
-                byte lightF = lightmap[lx, ly, lz + 1];
-                byte lightB = lightmap[lx, ly, lz - 1];
-                byte lightU = (ly == 255 ? (byte)15 : lightmap[lx, ly + 1, lz]);
-                byte lightD = (ly == 0 ? (byte)15 : lightmap[lx, ly - 1, lz]);
-                int b = (ly == 0 ? 0 : 1);
-                int t = (ly == 255 ? 0 : 1);
-                byte bl = (byte)((lightmap[lx, ly, lz - 1] + lightmap[lx - 1, ly, lz - 1] + lightmap[lx, ly - b, lz - 1] + lightmap[lx - 1, ly - b, lz - 1]) / 4);
-                byte tl = (byte)((lightmap[lx, ly, lz - 1] + lightmap[lx - 1, ly, lz - 1] + lightmap[lx, ly + t, lz - 1] + lightmap[lx - 1, ly + t, lz - 1]) / 4);
-                byte tr = (byte)((lightmap[lx, ly, lz - 1] + lightmap[lx + 1, ly, lz - 1] + lightmap[lx, ly + t, lz - 1] + lightmap[lx + 1, ly + t, lz - 1]) / 4);
-                byte br = (byte)((lightmap[lx, ly, lz - 1] + lightmap[lx + 1, ly, lz - 1] + lightmap[lx, ly - b, lz - 1] + lightmap[lx + 1, ly - b, lz - 1]) / 4);
-
-                //float lightVal = lightmap[x + WIDTH, y, z + WIDTH + 1];//GetBlockLight(x, y, z + 1);
-                light.Add(tl);
-                light.Add(tr);
-                light.Add(br);
-                light.Add(bl);
+                uint lightVal = lightmap[x + WIDTH, y, z + WIDTH - 1];
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
 
                 uvs.Add(new Vector2(workingBlock.Back.UV1.X, workingBlock.Back.UV1.Y));
                 uvs.Add(new Vector2(workingBlock.Back.UV1.Width, workingBlock.Back.UV1.Y));
@@ -422,28 +217,11 @@ namespace VoxelGame.Worlds
                 vertices.Add(new Vector3(0 + x, 1 + y, 1 + z));
                 vertices.Add(new Vector3(1 + x, 1 + y, 1 + z));
 
-                int lx = x + WIDTH;
-                int lz = z + WIDTH;
-                int ly = y;
-
-                byte lightR = lightmap[lx + 1, ly, lz];
-                byte lightL = lightmap[lx - 1, ly, lz];
-                byte lightF = lightmap[lx, ly, lz + 1];
-                byte lightB = lightmap[lx, ly, lz - 1];
-                byte lightU = (ly == 255 ? (byte)15 : lightmap[lx, ly + 1, lz]);
-                byte lightD = (ly == 0 ? (byte)15 : lightmap[lx, ly - 1, lz]);
-                int b = (ly == 0 ? 0 : 1);
-                int t = (ly == 255 ? 0 : 1);
-                byte bl = (byte)((lightmap[lx, ly + t, lz] + lightmap[lx - 1, ly + t, lz] + lightmap[lx, ly + t, lz - 1] + lightmap[lx - 1, ly + t, lz - 1]) / 4);
-                byte tl = (byte)((lightmap[lx, ly + t, lz] + lightmap[lx - 1, ly + t, lz] + lightmap[lx, ly + t, lz + 1] + lightmap[lx - 1, ly + t, lz + 1]) / 4);
-                byte tr = (byte)((lightmap[lx, ly + t, lz] + lightmap[lx + 1, ly + t, lz] + lightmap[lx, ly + t, lz + 1] + lightmap[lx + 1, ly + t, lz + 1]) / 4);
-                byte br = (byte)((lightmap[lx, ly + t, lz] + lightmap[lx + 1, ly + t, lz] + lightmap[lx, ly + t, lz - 1] + lightmap[lx + 1, ly + t, lz - 1]) / 4);
-
-                //float lightVal = lightmap[x + WIDTH, y, z + WIDTH + 1];//GetBlockLight(x, y, z + 1);
-                light.Add(br);
-                light.Add(bl);
-                light.Add(tl);
-                light.Add(tr);
+                uint lightVal = y == 255 ? 0xFFFF : lightmap[x + WIDTH, y + 1, z + WIDTH];
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
 
                 uvs.Add(new Vector2(workingBlock.Top.UV1.X, workingBlock.Top.UV1.Y));
                 uvs.Add(new Vector2(workingBlock.Top.UV1.Width, workingBlock.Top.UV1.Y));
@@ -488,24 +266,11 @@ namespace VoxelGame.Worlds
                 int lz = z + WIDTH;
                 int ly = y;
 
-                byte lightR = lightmap[lx + 1, ly, lz];
-                byte lightL = lightmap[lx - 1, ly, lz];
-                byte lightF = lightmap[lx, ly, lz + 1];
-                byte lightB = lightmap[lx, ly, lz - 1];
-                byte lightU = (ly == 255 ? (byte)15 : lightmap[lx, ly + 1, lz]);
-                byte lightD = (ly == 0 ? (byte)15 : lightmap[lx, ly - 1, lz]);
-                int b = (ly == 0 ? 0 : 1);
-                int t = (ly == 255 ? 0 : 1);
-                byte tl = (byte)((lightmap[lx, ly - b, lz] + lightmap[lx - 1, ly - b, lz] + lightmap[lx, ly - b, lz - 1] + lightmap[lx - 1, ly - b, lz - 1]) / 4);
-                byte bl = (byte)((lightmap[lx, ly - b, lz] + lightmap[lx - 1, ly - b, lz] + lightmap[lx, ly - b, lz + 1] + lightmap[lx - 1, ly - b, lz + 1]) / 4);
-                byte br = (byte)((lightmap[lx, ly - b, lz] + lightmap[lx + 1, ly - b, lz] + lightmap[lx, ly - b, lz + 1] + lightmap[lx + 1, ly - b, lz + 1]) / 4);
-                byte tr = (byte)((lightmap[lx, ly - b, lz] + lightmap[lx + 1, ly - b, lz] + lightmap[lx, ly - b, lz - 1] + lightmap[lx + 1, ly - b, lz - 1]) / 4);
-
-                //float lightVal = lightmap[x + WIDTH, y, z + WIDTH + 1];//GetBlockLight(x, y, z + 1);
-                light.Add(br);
-                light.Add(bl);
-                light.Add(tl);
-                light.Add(tr);
+                uint lightVal = y == 0 ? 0xFFFF : lightmap[x + WIDTH, y - 1, z + WIDTH];
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
 
                 uvs.Add(new Vector2(workingBlock.Bottom.UV1.X, workingBlock.Bottom.UV1.Y));
                 uvs.Add(new Vector2(workingBlock.Bottom.UV1.Width, workingBlock.Bottom.UV1.Y));
@@ -550,24 +315,11 @@ namespace VoxelGame.Worlds
                 int lz = z + WIDTH;
                 int ly = y;
 
-                byte lightR = lightmap[lx + 1, ly, lz];
-                byte lightL = lightmap[lx - 1, ly, lz];
-                byte lightF = lightmap[lx, ly, lz + 1];
-                byte lightB = lightmap[lx, ly, lz - 1];
-                byte lightU = (ly == 255 ? (byte)15 : lightmap[lx, ly + 1, lz]);
-                byte lightD = (ly == 0 ? (byte)15 : lightmap[lx, ly - 1, lz]);
-                int b = (ly == 0 ? 0 : 1);
-                int t = (ly == 255 ? 0 : 1);
-                byte bl = (byte)((lightmap[lx + 1, ly, lz] + lightmap[lx + 1, ly, lz - 1] + lightmap[lx + 1, ly - b, lz] + lightmap[lx + 1, ly - b, lz - 1]) / 4);
-                byte tl = (byte)((lightmap[lx + 1, ly, lz] + lightmap[lx + 1, ly, lz - 1] + lightmap[lx + 1, ly + t, lz] + lightmap[lx + 1, ly + t, lz - 1]) / 4);
-                byte tr = (byte)((lightmap[lx + 1, ly, lz] + lightmap[lx + 1, ly, lz + 1] + lightmap[lx + 1, ly + t, lz] + lightmap[lx + 1, ly + t, lz + 1]) / 4);
-                byte br = (byte)((lightmap[lx + 1, ly, lz] + lightmap[lx + 1, ly, lz + 1] + lightmap[lx + 1, ly - b, lz] + lightmap[lx + 1, ly - b, lz + 1]) / 4);
-
-                //float lightVal = lightmap[x + WIDTH, y, z + WIDTH + 1];//GetBlockLight(x, y, z + 1);
-                light.Add(tl);
-                light.Add(tr);
-                light.Add(br);
-                light.Add(bl);
+                uint lightVal = lightmap[x + WIDTH + 1, y, z + WIDTH];
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
 
                 uvs.Add(new Vector2(workingBlock.Right.UV1.X, workingBlock.Right.UV1.Y));
                 uvs.Add(new Vector2(workingBlock.Right.UV1.Width, workingBlock.Right.UV1.Y));
@@ -608,28 +360,11 @@ namespace VoxelGame.Worlds
                 vertices.Add(new Vector3(0 + x, 0 + y, 0 + z));
                 vertices.Add(new Vector3(0 + x, 0 + y, 1 + z));
 
-                int lx = x + WIDTH;
-                int lz = z + WIDTH;
-                int ly = y;
-
-                byte lightR = lightmap[lx + 1, ly, lz];
-                byte lightL = lightmap[lx - 1, ly, lz];
-                byte lightF = lightmap[lx, ly, lz + 1];
-                byte lightB = lightmap[lx, ly, lz - 1];
-                byte lightU = (ly == 255 ? (byte)15 : lightmap[lx, ly + 1, lz]);
-                byte lightD = (ly == 0 ? (byte)15 : lightmap[lx, ly - 1, lz]);
-                int b = (ly == 0 ? 0 : 1);
-                int t = (ly == 255 ? 0 : 1);
-                byte br = (byte)((lightmap[lx - 1, ly, lz] + lightmap[lx - 1, ly, lz - 1] + lightmap[lx - 1, ly - b, lz] + lightmap[lx - 1, ly - b, lz - 1]) / 4);
-                byte tr = (byte)((lightmap[lx - 1, ly, lz] + lightmap[lx - 1, ly, lz - 1] + lightmap[lx - 1, ly + t, lz] + lightmap[lx - 1, ly + t, lz - 1]) / 4);
-                byte tl = (byte)((lightmap[lx - 1, ly, lz] + lightmap[lx - 1, ly, lz + 1] + lightmap[lx - 1, ly + t, lz] + lightmap[lx - 1, ly + t, lz + 1]) / 4);
-                byte bl = (byte)((lightmap[lx - 1, ly, lz] + lightmap[lx - 1, ly, lz + 1] + lightmap[lx - 1, ly - b, lz] + lightmap[lx - 1, ly - b, lz + 1]) / 4);
-
-                //float lightVal = lightmap[x + WIDTH, y, z + WIDTH + 1];//GetBlockLight(x, y, z + 1);
-                light.Add(tl);
-                light.Add(tr);
-                light.Add(br);
-                light.Add(bl);
+                uint lightVal = lightmap[x + WIDTH - 1, y, z + WIDTH];
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
+                light.Add(lightVal);
 
                 uvs.Add(new Vector2(workingBlock.Left.UV1.X, workingBlock.Left.UV1.Y));
                 uvs.Add(new Vector2(workingBlock.Left.UV1.Width, workingBlock.Left.UV1.Y));

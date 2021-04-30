@@ -66,6 +66,7 @@ namespace VoxelGame.Rendering
                     // Add the block to location 0,0,0
                     chunk.Blocks[0, 0, 0] = new Chunk.BlockState(0, 0, 0, chunk) { id = (short)item.Block.ID };
 
+                    chunk.GenerateLight();  // Generate lightmap
                     chunk.GenerateMesh();   // Generate mesh
                     chunk.RenderForIcon();  // Reder the chunk with transform for icon
 

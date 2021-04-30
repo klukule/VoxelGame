@@ -34,6 +34,14 @@ namespace VoxelGame.Blocks
         public virtual BlockColorDelegate BlockColor { get; set; } = (x, y, z) => Color4.White;
 
         /// <summary>
+        /// Light emission strength
+        /// </summary>
+        /// <remarks>
+        /// Remapped and aligned to nearest full integer between 0~16
+        /// </remarks>
+        public virtual Color4 Emission { get; set; } = Color4.Black;
+
+        /// <summary>
         /// Block opacity
         /// </summary>
         /// <remarks>
@@ -45,6 +53,11 @@ namespace VoxelGame.Blocks
         /// Whether or not the block is transparent
         /// </summary>
         public virtual bool IsTransparent { get; set; } = false;
+
+        /// <summary>
+        /// Whether or not the block is emissive
+        /// </summary>
+        public virtual bool IsEmissive { get; set; } = false;
 
         /// <summary>
         /// Whether or not the block culls blocks of the same type

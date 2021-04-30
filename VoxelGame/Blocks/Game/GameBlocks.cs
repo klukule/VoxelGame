@@ -22,6 +22,7 @@ namespace VoxelGame.Blocks
             LOG_OAK = new OakLogBlock();
             LEAVES_OAK = new LeavesOakBlock();
             PLANKS_OAK = new OakWoodPlanks();
+            GLOWSTONE = new GlowstoneBlock();
         }
 
         public static DirtBlock DIRT { get; private set; }
@@ -32,5 +33,6 @@ namespace VoxelGame.Blocks
         public static OakLogBlock LOG_OAK { get; private set; }
         public static OakWoodPlanks PLANKS_OAK { get; private set; }
         public static LeavesOakBlock LEAVES_OAK { get; private set; }
+        public static GlowstoneBlock GLOWSTONE{ get; private set; }
     }
 }

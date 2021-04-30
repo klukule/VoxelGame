@@ -8,6 +8,7 @@ namespace VoxelGame.Blocks
     /// </summary>
     public static class BlockDatabase
     {
+        // TODO: Optimize, not effective for accessing via numerical ID (during lightmap lookup) has O(n) - use separate list with numerical IDs for that, it has O(1) access
         // Block registry
         private static Dictionary<string, Block> _blocks = new Dictionary<string, Block>();
 

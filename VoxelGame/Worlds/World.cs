@@ -217,6 +217,7 @@ namespace VoxelGame.Worlds
                         Chunk chunk = _chunksToUpdate.First.Value;
                         lock (chunk)
                         {
+                            chunk.GenerateLight();
                             chunk.GenerateMesh();
                             _chunksToUpdate.Remove(chunk);
                             if (!HasFinishedInitialLoading)
@@ -316,6 +317,7 @@ namespace VoxelGame.Worlds
             }
             else // Sync
             {
+                chunk.GenerateLight();
                 chunk.GenerateMesh();
             }
         }

@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using System;
 
 namespace VoxelGame.Rendering.Vertex
 {
@@ -17,18 +18,23 @@ namespace VoxelGame.Rendering.Vertex
             for (int i = 0; i < positions.Length; i++)
             {
                 var position = positions[i];
-                _elements.Add(position.X);
-                _elements.Add(position.Y);
-                _elements.Add(position.Z);
+                //_elements.Add(position.X);
+                //_elements.Add(position.Y);
+                //_elements.Add(position.Z);
+
+                _elements.AddRange(BitConverter.GetBytes(position.X));
+                _elements.AddRange(BitConverter.GetBytes(position.Y));
+                _elements.AddRange(BitConverter.GetBytes(position.Z));
 
                 RecalculateBounds(position);
 
-                _elements.Add(uvs[i].X);
-                _elements.Add(uvs[i].Y);
 
-                _elements.Add(normals[i].X);
-                _elements.Add(normals[i].Y);
-                _elements.Add(normals[i].Z);
+                _elements.AddRange(BitConverter.GetBytes(uvs[i].X));
+                _elements.AddRange(BitConverter.GetBytes(uvs[i].Y));
+
+                _elements.AddRange(BitConverter.GetBytes(normals[i].X));
+                _elements.AddRange(BitConverter.GetBytes(normals[i].Y));
+                _elements.AddRange(BitConverter.GetBytes(normals[i].Z));
             }
         }
     }

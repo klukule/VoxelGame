@@ -29,7 +29,7 @@ namespace VoxelGame.Rendering
 
             VertexContainer = vertices;
 
-            GL.BufferData(BufferTarget.ArrayBuffer, VertexContainer.Length * sizeof(float), VertexContainer.Elements, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, VertexContainer.Length * sizeof(byte), VertexContainer.Elements, BufferUsageHint.StaticDraw);
         }
 
         /// <summary>

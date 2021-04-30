@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using System;
 
 namespace VoxelGame.Rendering.Vertex
 {
@@ -11,7 +12,7 @@ namespace VoxelGame.Rendering.Vertex
 
         // TODO: Allow for partial updates???
 
-        public VertexBlockContainer(Vector3[] positions, Vector2[] uvs, Vector3[] normals, Vector2[] uv2, Vector4[] col, float[] lighting)
+        public VertexBlockContainer(Vector3[] positions, Vector2[] uvs, Vector3[] normals, Vector2[] uv2, Vector4[] col, uint[] lighting)
         {
             if (positions.Length != uvs.Length)
                 Debug.Assert("Vertex position array is not of the same length as vertex UV array!");
@@ -20,28 +21,28 @@ namespace VoxelGame.Rendering.Vertex
             for (int i = 0; i < positions.Length; i++)
             {
                 var position = positions[i];
-                _elements.Add(position.X);
-                _elements.Add(position.Y);
-                _elements.Add(position.Z);
+                _elements.AddRange(BitConverter.GetBytes(position.X));
+                _elements.AddRange(BitConverter.GetBytes(position.Y));
+                _elements.AddRange(BitConverter.GetBytes(position.Z));
 
                 RecalculateBounds(position);
 
-                _elements.Add(uvs[i].X);
-                _elements.Add(uvs[i].Y);
+                _elements.AddRange(BitConverter.GetBytes(uvs[i].X));
+                _elements.AddRange(BitConverter.GetBytes(uvs[i].Y));
 
-                _elements.Add(normals[i].X);
-                _elements.Add(normals[i].Y);
-                _elements.Add(normals[i].Z);
+                _elements.AddRange(BitConverter.GetBytes(normals[i].X));
+                _elements.AddRange(BitConverter.GetBytes(normals[i].Y));
+                _elements.AddRange(BitConverter.GetBytes(normals[i].Z));
 
-                _elements.Add(uv2[i].X);
-                _elements.Add(uv2[i].Y);
+                _elements.AddRange(BitConverter.GetBytes(uv2[i].X));
+                _elements.AddRange(BitConverter.GetBytes(uv2[i].Y));
 
-                _elements.Add(col[i].X);
-                _elements.Add(col[i].Y);
-                _elements.Add(col[i].Z);
-                _elements.Add(col[i].W);
+                _elements.AddRange(BitConverter.GetBytes(col[i].X));
+                _elements.AddRange(BitConverter.GetBytes(col[i].Y));
+                _elements.AddRange(BitConverter.GetBytes(col[i].Z));
+                _elements.AddRange(BitConverter.GetBytes(col[i].W));
 
-                _elements.Add(lighting[i]);
+                _elements.AddRange(BitConverter.GetBytes(lighting[i]));
             }
         }
     }

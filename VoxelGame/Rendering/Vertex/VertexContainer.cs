@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using System;
 using System.Collections.Generic;
 using VoxelGame.Physics;
 
@@ -9,7 +10,7 @@ namespace VoxelGame.Rendering.Vertex
     /// </summary>
     public class VertexContainer
     {
-        protected List<float> _elements = new List<float>();                    // Raw list of chained elements as one array
+        protected List<byte> _elements = new List<byte>();                      // Raw list of chained elements as one array
         protected BoundingBox _boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0); // Tight bounding box around the geometry
 
         /// <summary>
@@ -26,7 +27,7 @@ namespace VoxelGame.Rendering.Vertex
         /// <summary>
         /// Gets stored data as array
         /// </summary>
-        public float[] Elements => _elements.ToArray();
+        public byte[] Elements => _elements.ToArray();
 
         /// <summary>
         /// Gets total element count (sum of Element count array entries)
@@ -91,14 +92,14 @@ namespace VoxelGame.Rendering.Vertex
             {
                 var position = positions[i];
 
-                _elements.Add(position.X);
-                _elements.Add(position.Y);
-                _elements.Add(position.Z);
+                _elements.AddRange(BitConverter.GetBytes(position.X));
+                _elements.AddRange(BitConverter.GetBytes(position.Y));
+                _elements.AddRange(BitConverter.GetBytes(position.Z));
 
                 RecalculateBounds(position);    // Update bounding box
 
-                _elements.Add(uvs[i].X);
-                _elements.Add(uvs[i].Y);
+                _elements.AddRange(BitConverter.GetBytes(uvs[i].X));
+                _elements.AddRange(BitConverter.GetBytes(uvs[i].Y));
             }
         }
 
