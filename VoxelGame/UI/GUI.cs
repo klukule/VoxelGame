@@ -433,6 +433,10 @@ namespace VoxelGame.UI
 
                 theText = text.Insert(_textCarret, "_");
             }
+            else
+            {
+                _textCarret = 0;
+            }
 
             Color4 startingColor = style.Normal.TextColor;
 

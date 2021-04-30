@@ -79,6 +79,9 @@ namespace VoxelGame.Worlds
 
         private void OpenStorage()
         {
+
+            if (!Directory.Exists(System.IO.Path.GetDirectoryName(Path)))
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path));
             var newSave = !File.Exists(Path);
             _storageConnection = new SqliteConnection($"Data Source={Path}");
             _storageConnection.Open();

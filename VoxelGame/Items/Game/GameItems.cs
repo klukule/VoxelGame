@@ -18,6 +18,7 @@ namespace VoxelGame.Items
             PLANKS_OAK = new BlockItem(GameBlocks.PLANKS_OAK);
             DIRT = new BlockItem(GameBlocks.DIRT);
             GLOWSTONE = new BlockItem(GameBlocks.GLOWSTONE);
+            ASTAR = new AStarTesterItem();
         }
 
         public static BlockItem DIRT { get; private set; }
@@ -32,5 +33,6 @@ namespace VoxelGame.Items
 
         public static BlockItem PLANKS_OAK { get; private set; }
         public static BlockItem GLOWSTONE { get; private set; }
+        public static AStarTesterItem ASTAR { get; private set; }
     }
 }

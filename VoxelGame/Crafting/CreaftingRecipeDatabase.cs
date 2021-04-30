@@ -18,6 +18,7 @@ namespace VoxelGame.Crafting
         {
             RegisterRecipe(new WoodenPlanksRecipe());
             RegisterRecipe(new GlowstoneRecipe());
+            RegisterRecipe(new AStartTesterRecipe());
         }
 
         /// <summary>
