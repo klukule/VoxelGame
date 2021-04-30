@@ -67,10 +67,13 @@ namespace VoxelGame.Worlds
             // Save existing
         }
 
+        private string LoadPropertyFromStorage(string propertyName) => _storageConnection.QueryFirstOrDefault<string>("SELECT Value FROM Metadata WHERE Name = @propertyName LIMIT 1", new { propertyName });
+        private void SavePropertyToStorage(string propertyName, string value) => _storageConnection.Query("INSERT OR REPLACE INTO Metadata(Name, Value) VALUES(@propertyName, @value)", new { propertyName, value });
         private void CreateSaveFile()
         {
             _storageConnection.Query(CREATE_WORLD_FILE_V1);
-            _storageConnection.Query($"INSERT INTO Metadata(\"Name\", \"Value\") VALUES(\"Seed\", @seed)", new { seed = Seed });
+            //_storageConnection.Query($"INSERT INTO Metadata(\"Name\", \"Value\") VALUES(\"Seed\", @seed)", new { seed = Seed });
+            SavePropertyToStorage("Seed", Seed);
         }
 
         private void OpenStorage()
@@ -89,9 +92,9 @@ namespace VoxelGame.Worlds
             _storageConnection = null;
         }
 
-        public bool ChunkExists(int x, int z) => _storageConnection.QueryFirst<int>("SELECT COUNT(*) FROM Chunks WHERE X=@X AND Y=@Y", new { X = x, Y = z }) > 0;
+        private bool ChunkExists(int x, int z) => _storageConnection.QueryFirst<int>("SELECT COUNT(*) FROM Chunks WHERE X=@X AND Y=@Y LIMIT 1", new { X = x, Y = z }) > 0;
 
-        public void LoadChunkFromFile(Chunk chunk)
+        private void LoadChunkFromFile(Chunk chunk)
         {
             //var exists = _storageConnection.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Chunks WHERE X=@X AND Y=@Y", new { X = x, Y = z }) > 0;
             //if (!exists) return null;
@@ -100,7 +103,7 @@ namespace VoxelGame.Worlds
             var pos = chunk.Position;
             //Task.Factory.StartNew(() =>
             {
-                var rawData = _storageConnection.QueryFirst<byte[]>("SELECT Voxels FROM Chunks WHERE X=@X AND Y=@Y", new { X = (int)pos.X, Y = (int)pos.Y });
+                var rawData = _storageConnection.QueryFirst<byte[]>("SELECT Voxels FROM Chunks WHERE X=@X AND Y=@Y LIMIT 1", new { X = (int)pos.X, Y = (int)pos.Y });
                 try
                 {
                     for (int x = 0; x < Chunk.WIDTH; x++)
@@ -119,7 +122,7 @@ namespace VoxelGame.Worlds
             }//);
         }
 
-        public void SaveChunkToFile(Chunk chunk, bool sync)
+        private void SaveChunkToFile(Chunk chunk, bool sync)
         {
             // TODO: Do this in async to avoid lags
             using var voxelStream = new MemoryStream();

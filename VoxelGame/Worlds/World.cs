@@ -180,7 +180,13 @@ namespace VoxelGame.Worlds
             };
 
             // Setup light
-            _lightAngle = 5;
+
+            var storedAngle = LoadPropertyFromStorage("LightAngle");
+            if (string.IsNullOrEmpty(storedAngle))
+                _lightAngle = 5;
+            else
+                _lightAngle = float.Parse(storedAngle);
+
             _lightBufferData = new LightingUniformBuffer();
 
             HasFinishedInitialLoading = false;
@@ -613,6 +619,9 @@ namespace VoxelGame.Worlds
 
             _newChunks.Clear();
             _newChunks = null;
+
+            // Save time
+            SavePropertyToStorage("LightAngle", _lightAngle.ToString());
 
             // Close storage
             CloseStorage();
