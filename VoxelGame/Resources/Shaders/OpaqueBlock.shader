@@ -36,9 +36,9 @@ void main()
 	v_TexCoord2 = texCoord2;
 
 	v_SunLight = float((vertLight >> 12) & 0xFu) * lightMul;
-	float r = float((vertLight >> 8) & 0xFu) * lightMul;
-	float g = float((vertLight >> 4) & 0xFu) * lightMul;
-	float b = float(vertLight & 0xFu) * lightMul;
+	float r = pow(float((vertLight >> 8) & 0xFu) * lightMul, 2);
+	float g = pow(float((vertLight >> 4) & 0xFu) * lightMul, 2);
+	float b = pow(float(vertLight & 0xFu) * lightMul, 2);
 	v_BlockLight = vec3(r, g, b);
 
 	mat4 wvp = Camera.ProjectionMat * Camera.ViewMat * u_World;

@@ -375,6 +375,8 @@ namespace VoxelGame.Entities
             rect.Y += 32f;
             GUI.Label($"Loc in chunk: {PositionInChunk}", rect);
             rect.Y += 32f;
+            GUI.Label($"Position: {Position}", rect);
+            rect.Y += 32f;
             GUI.Label($"Rotation: {_currentWorld.WorldCamera.Rotation}", rect);
             rect.Y += 32f;
             GUI.Label($"Queue length: {_currentWorld.UpdateQueueLength}", rect);

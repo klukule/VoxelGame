@@ -38,6 +38,17 @@ namespace VoxelGame.Blocks
         /// </summary>
         /// <remarks>
         /// Remapped and aligned to nearest full integer between 0~16
+        /// ------------
+        /// Recommended values to avoid attenuation issues:
+        /// - While   (255, 255, 255)
+        /// - Cyan    (  0, 255, 255)
+        /// - Magenta (255,   0, 255)
+        /// - Yellow  (255, 255,   0)
+        /// - Red     (255,   0,   0)
+        /// - Green   (  0, 255,   0)
+        /// - Blue    (  0,   0, 255)
+        /// ------------
+        /// 
         /// </remarks>
         public virtual Color4 Emission { get; set; } = Color4.Black;
 
