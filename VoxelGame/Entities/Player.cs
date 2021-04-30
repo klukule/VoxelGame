@@ -60,6 +60,8 @@ namespace VoxelGame.Entities
         private float _healthIncreaseTickRate = 4;  // Tick rate of health regen
         private float _lastHealthIncreaseTick;      // Last time helath regen ticked
 
+        public override Rigidbody Collision => _rigidbody;
+
         /// <summary>
         /// Players inventory
         /// </summary>
@@ -207,10 +209,9 @@ namespace VoxelGame.Entities
 
         public void SetInitialPosition(Vector3 position, Vector3 rotation)
         {
-            if (_hasHadInitialSet) return;
-            _hasHadInitialSet = true;
             Position = position;
             Rotation = rotation;
+            _hasHadInitialSet = true;
         }
 
         /// <summary>
@@ -223,6 +224,7 @@ namespace VoxelGame.Entities
             if (Raycast.CastVoxel(_currentWorld.WorldCamera.Position, _currentWorld.WorldCamera.ForwardVector, 5, out RayVoxelOut op))
             {
                 int x = (int)Math.Floor(PositionInChunk.X);
+                int y = (int)Math.Floor(PositionInChunk.Y);
                 int z = (int)Math.Floor(PositionInChunk.Z);
                 bool isPlayerAtPos = (int)op.PlacementPosition.X == x && (int)op.PlacementPosition.Z == z;
 
@@ -249,6 +251,16 @@ namespace VoxelGame.Entities
         void InputDestroyBlock()
         {
             if (!_controlsEnabled) return;
+
+            if (Raycast.CastEntities(_currentWorld.WorldCamera.Position, _currentWorld.WorldCamera.ForwardVector, 5, out Entity entity))
+            {
+                if (entity is IDamageable damageable)
+                {
+                    damageable.TakeDamage(2);
+                    Debug.Log("HIT, REMAINING: " + damageable.Health);
+                    return;
+                }
+            }
 
             if (Raycast.CastVoxel(_currentWorld.WorldCamera.Position, _currentWorld.WorldCamera.ForwardVector, 5, out RayVoxelOut op))
             {
@@ -313,8 +325,8 @@ namespace VoxelGame.Entities
                 // Cast straight down to find block at the top 
                 if (Raycast.CastVoxel(new Vector3(Position), new Vector3(0, -1, 0), Chunk.HEIGHT, out RayVoxelOut hit))
                 {
-                    var chunkWp = (hit.BlockPosition);
-                    Position = chunkWp + new Vector3(0.5f, Chunk.HEIGHT, 0.5f);
+                    var chunkWp = new Vector3(hit.ChunkPosition.X * Chunk.WIDTH, 0, hit.ChunkPosition.Y * Chunk.WIDTH) + hit.BlockPosition;
+                    Position = chunkWp + new Vector3(0.5f, 0, 0.5f);
                     Debug.Log("Hit block for y pos " + Position.Y);
                     _rigidbody = new Rigidbody(this, 70, new BoundingBox(-0.25f, 0.25f, 0, 2, -0.25f, 0.25f));
                     _hasHadInitialSet = true;
@@ -338,7 +350,8 @@ namespace VoxelGame.Entities
 
             if (_currentWorld.HasFinishedInitialLoading)
             {
-                if (_lastHungerLossTick + _hungerLossTickRate <= Time.GameTime)
+                // Disabled health decay until food is implemented
+                /*if (_lastHungerLossTick + _hungerLossTickRate <= Time.GameTime)
                 {
                     _hungerLossAmount = _isSprinting ? 0.25f : 0.01f;
 
@@ -346,11 +359,11 @@ namespace VoxelGame.Entities
                         _currentHunger -= _hungerLossAmount;
                     else
                     {
-                        _currentHealth -= 0.0625f;
-                        TakeDamage(0);
+                        //_currentHealth -= 0.0625f; // 1.5
+                        TakeDamage(1);
                     }
                     _lastHungerLossTick = Time.GameTime;
-                }
+                }*/
 
                 if (_lastHealthIncreaseTick + _healthIncreaseTickRate <= Time.GameTime)
                 {
@@ -384,57 +397,59 @@ namespace VoxelGame.Entities
             GUI.Image(_currentWorld.TexturePack.Crosshair, new Rect((Program.Window.Width / 2) - 16, (Program.Window.Height / 2) - 16, 32, 32));
             _inventory.RenderToolBar();
 
-            // Temporaily disable health and hunger due to layout chanes
-            /*float winWidth = Window.WindowWidth;
+            float winWidth = Window.WindowWidth;
             float winHeight = Window.WindowHeight;
-            int size = 23;
+
+            float centerX = winWidth * 0.5f;
+            float centerY = winHeight * 0.5f;
+
+            float slotSize = ContainerRenderer.SLOT_SIZE;
+            Vector2 size = new Vector2(Inventory.ContainerSize.X, 1) * slotSize;
+
+            // Inventory toolbar position
+            Rect toolbarRect = new Rect(centerX - size.X * 0.5f, winHeight - size.Y * 0.5f - slotSize, size.X, size.Y);
+
+            float elementSize = 18;
+
             for (int i = 0; i < MAX_HEALTH; i++)
             {
-                int forX = size * (i / 2);
+                float xOffset = (i / 2) * (elementSize - 1);
                 int curHealth = (int)Math.Ceiling(_currentHealth);
 
+                // Heart container background
                 if (i > curHealth)
-                    GUI.Image(_heartEmptyIcon, new Rect((winWidth / 2) - 240 + forX, winHeight - 110, size, size));
+                    GUI.Image(_heartEmptyIcon, new Rect(toolbarRect.X + xOffset, toolbarRect.Y - elementSize - 10, elementSize, elementSize));
 
-                if (i % 2 != 0)
+                if (i % 2 != 0) // Half a heart
                 {
                     if (i == curHealth)
-                    {
-                        GUI.Image(_heartHalfIcon, new Rect((winWidth / 2) - 240 + forX, winHeight - 110, size, size));
-                    }
+                        GUI.Image(_heartHalfIcon, new Rect(toolbarRect.X + xOffset, toolbarRect.Y - elementSize - 10, elementSize, elementSize));
+
                 }
-                else
-                {
-                    if (i <= curHealth)
-                    {
-                        GUI.Image(_heartIcon, new Rect((winWidth / 2) - 240 + forX, winHeight - 110, size, size));
-                    }
-                }
+                else if (i <= curHealth) // Full heart icon
+                    GUI.Image(_heartIcon, new Rect(toolbarRect.X + xOffset, toolbarRect.Y - elementSize - 10, elementSize, elementSize));
+
             }
 
             for (int i = MAX_HUNGER; i > 0; i--)
             {
-                int forX = size * ((MAX_HUNGER - i) / 2) - (size / 4);
+                float xOffset = (i / 2) * (elementSize - 1);
                 int curHunger = (int)Math.Ceiling(_currentHunger);
 
+                // Heart container background
                 if (i > curHunger)
-                    GUI.Image(_hungerEmptyIcon, new Rect((winWidth / 2) + forX, winHeight - 110, size, size));
+                    GUI.Image(_hungerEmptyIcon, new Rect(toolbarRect.X + toolbarRect.Width - xOffset, toolbarRect.Y - elementSize - 10, elementSize, elementSize));
 
-                if (i % 2 != 0)
+                if (i % 2 != 0) // Half a heart
                 {
                     if (i == curHunger)
-                    {
-                        GUI.Image(_hungerHalfIcon, new Rect((winWidth / 2) + forX, winHeight - 110, size, size));
-                    }
+                        GUI.Image(_hungerHalfIcon, new Rect(toolbarRect.X + toolbarRect.Width - xOffset, toolbarRect.Y - elementSize - 10, elementSize, elementSize));
+
                 }
-                else
-                {
-                    if (i <= curHunger)
-                    {
-                        GUI.Image(_hungerIcon, new Rect((winWidth / 2) + forX, winHeight - 110, size, size));
-                    }
-                }
-            }*/
+                else if (i < curHunger) // Full heart icon
+                    GUI.Image(_hungerIcon, new Rect(toolbarRect.X + toolbarRect.Width - xOffset, toolbarRect.Y - elementSize - 10, elementSize, elementSize));
+
+            }
         }
 
         public override void OnPreVoxelCollisionEnter()
@@ -464,6 +479,7 @@ namespace VoxelGame.Entities
         public void Die()
         {
             //The player died
+            Respawn();
         }
 
         public void TakeDamage(int damage)
@@ -474,6 +490,17 @@ namespace VoxelGame.Entities
                 _currentHealth = 0;
                 Die();
             }
+        }
+
+        public void Respawn()
+        {
+            _hasHadInitialSet = false;
+            Position = Vector3.Zero;
+            _currentHealth = MAX_HEALTH;
+            _currentHunger = MAX_HUNGER;
+            _lastHungerLossTick = Time.GameTime;
+            _inventory.ItemsList.Clear();
+            _craftingInventory.ItemsList.Clear();
         }
     }
 }

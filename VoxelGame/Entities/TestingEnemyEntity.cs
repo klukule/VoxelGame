@@ -28,6 +28,7 @@ namespace VoxelGame.Entities
 
         private float _damageTickRate = 1f;
         private float _damageTick;
+        public override Rigidbody Collision => _rigidbody;
 
         public int Health
         {
@@ -110,10 +111,17 @@ namespace VoxelGame.Entities
 
         public void Die()
         {
+            World.Instance.DestroyEntity(this);
         }
 
         public void TakeDamage(int damage)
         {
+            _currentHealth -= damage;
+            if (_currentHealth <= 0)
+            {
+                _currentHealth = 0;
+                Die();
+            }
         }
 
         // TODO: Move to separate file

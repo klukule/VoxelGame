@@ -22,9 +22,10 @@ namespace VoxelGame.Items
 
         public override void OnInteract(Vector3 position, Chunk chunk)
         {
-            var enemy = new TestingEnemyEntity();
-            enemy.Position = new Vector3(chunk.Position.X * Chunk.WIDTH, 0, chunk.Position.Y * Chunk.WIDTH) + position;
-            World.Instance.AddEntity(enemy);
+            // Can spawn
+            if (chunk.GetBlockID((int)position.X, (int)position.Y, (int)position.Z) <= 0 &&
+                chunk.GetBlockID((int)position.X, (int)position.Y + 1, (int)position.Z) <= 0)
+                World.Instance.AddEntity(new TestingEnemyEntity() { Position = new Vector3(chunk.Position.X * Chunk.WIDTH + 0.5f, 0, chunk.Position.Y * Chunk.WIDTH + 0.5f) + position });
         }
     }
 }

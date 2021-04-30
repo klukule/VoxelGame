@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using VoxelGame.Physics;
 
 namespace VoxelGame.Entities
 {
@@ -25,6 +26,11 @@ namespace VoxelGame.Entities
         /// Entity Euler rotation (Pitch, Yaw, Roll)
         /// </summary>
         public Vector3 Rotation;
+
+        /// <summary>
+        /// Entity collider
+        /// </summary>
+        public virtual Rigidbody Collision => null;
 
         /// <summary>
         /// Forward vector the entity is facing

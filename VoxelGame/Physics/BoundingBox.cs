@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using System;
 using VoxelGame.Blocks;
 using VoxelGame.Worlds;
 
@@ -198,6 +199,41 @@ namespace VoxelGame.Physics
 
 
             return false;
+        }
+
+
+        /// <summary>
+        /// Checks wheteher the ray intersects bounding box
+        /// </summary>
+        /// <param name="position">Ray origin</param>
+        /// <param name="direction">Ray direction (unit vector)</param>
+        /// <returns>True if intersects; otherwise false</returns>
+        public bool IntersectsRay(Rigidbody body, Vector3 position, Vector3 direction, out float distance)
+        {
+            var dirfrac = new Vector3(1f / direction.X, 1f / direction.Y, 1f / direction.Z);
+
+            var t1 = (body.Owner.Position + Min - position) * dirfrac;
+            var t2 = (body.Owner.Position + Max - position) * dirfrac;
+
+            float tmin = MathF.Max(MathF.Max(MathF.Min(t1.X, t2.X), MathF.Min(t1.Y, t2.Y)), MathF.Min(t1.Z, t2.Z));
+            float tmax = MathF.Min(MathF.Min(MathF.Max(t1.X, t2.X), MathF.Max(t1.Y, t2.Y)), MathF.Max(t1.Z, t2.Z));
+
+            // Intersects, but behind us
+            if(tmax < 0)
+            {
+                distance = tmax;
+                return false;
+            }
+
+            // if tmin > tmax, doesn't intersect
+            if(tmin > tmax)
+            {
+                distance = tmax;
+                return false;
+            }
+
+            distance = tmin;
+            return true;
         }
     }
 }

@@ -1,5 +1,8 @@
 ﻿using OpenTK;
+using System.Collections.Generic;
+using System.Linq;
 using VoxelGame.Blocks;
+using VoxelGame.Entities;
 using VoxelGame.Worlds;
 
 namespace VoxelGame.Physics
@@ -46,6 +49,37 @@ namespace VoxelGame.Physics
     public static class Raycast
     {
         private const float stepSize = 0.125f;
+
+        /// <summary>
+        /// Raycast active entities
+        /// </summary>
+        /// <param name="position">Ray origin</param>
+        /// <param name="direction">Ray direction</param>
+        /// <param name="distance">Ray distance</param>
+        /// <param name="output">Raycast result</param>
+        /// <returns>True if hit; otherwise false</returns>
+        public static bool CastEntities(Vector3 position, Vector3 direction, float distance, out Entity entity)
+        {
+            entity = null;
+            float dist = float.MaxValue;
+            foreach (var e in World.Instance.LoadedEntities)
+            {
+                if (e.Collision == null || e.GetType() == typeof(Player)) continue;
+
+                foreach (var cs in e.Collision.CollisionShapes)
+                {
+                    if(cs.IntersectsRay(e.Collision, position, direction, out float d))
+                    {
+                        if(d <= distance && d < dist)
+                        {
+                            entity = e;
+                            dist = d;
+                        }
+                    }
+                }
+            }
+            return entity != null;
+        }
 
         /// <summary>
         /// Raycast in voxel world

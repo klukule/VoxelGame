@@ -104,6 +104,11 @@ namespace VoxelGame.Worlds
         public Chunk[] LoadedChunks => _loadedChunks.ToArray();
 
         /// <summary>
+        /// List of currently loaded entities
+        /// </summary>
+        public IReadOnlyCollection<Entity> LoadedEntities => _loadedEntities;
+
+        /// <summary>
         /// Player
         /// </summary>
         public Player Player => _player;
