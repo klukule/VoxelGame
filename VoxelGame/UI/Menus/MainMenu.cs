@@ -59,7 +59,8 @@ namespace VoxelGame.UI.Menus
 
             if (GUI.Button("Load world", new Rect(centerX - 200, centerY - 25, 400, 40)))
             {
-                // TODO: Re-enable world loading once fixed
+                new LoadWorldMenu { PreviousMenu = this }.Show();
+                Close();
             }
 
             if (GUI.Button("Options", new Rect(centerX - 200, centerY + 25, 400, 40)))

@@ -20,7 +20,7 @@ namespace VoxelGame.Worlds
     /// <summary>
     /// Game world
     /// </summary>
-    public class World : ILoadable, ISaveable, IDisposable
+    public partial class World : IDisposable
     {
         private Skybox _skybox;                         // Skybox model
         private Player _player;                         // Player instance
@@ -46,11 +46,6 @@ namespace VoxelGame.Worlds
         private Vector2 _lastPlayerPos = Vector2.One;               // Last known player position
         private List<Vector2> _chunksToKeep = new List<Vector2>();  // Chunks that are to be kept loaded
         private List<Vector2> _newChunks = new List<Vector2>();     // Chunks that are to be loaded
-
-        /// <summary>
-        /// World name
-        /// </summary>
-        public string Name { get; }
 
         /// <summary>
         /// World seed
@@ -98,9 +93,6 @@ namespace VoxelGame.Worlds
         /// </summary>
         public int RenderDistance => _worldSize;
 
-        [JsonIgnore]
-        public string Path => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + $"\\VoxelGame\\Worlds\\{Name}\\{Name}.world";
-
         /// <summary>
         /// World Instance
         /// </summary>
@@ -123,9 +115,9 @@ namespace VoxelGame.Worlds
         /// </summary>
         public World()
         {
-            if (_instance != null)
-                Dispose();
-            Begin();
+            //if (_instance != null)
+            //    Dispose();
+            //Begin();
         }
 
         /// <summary>
@@ -166,6 +158,8 @@ namespace VoxelGame.Worlds
         public void Begin()
         {
             TexturePack = AssetDatabase.GetAsset<TexturePack>("");  // Load default texture pack
+
+            OpenStorage();
 
             // Setup seeded objects
             TerrainNoise = new OpenSimplex(Seed.GetSeed());
@@ -331,7 +325,8 @@ namespace VoxelGame.Worlds
         /// <returns>Returns true if chunk was found, otherwise false</returns>
         public bool TryGetChunkAtPosition(int x, int y, out Chunk chunk)
         {
-            chunk = _loadedChunks.FirstOrDefault(v => v.Position.X == x && v.Position.Y == y);
+            lock (_loadedChunks)
+                chunk = _loadedChunks.FirstOrDefault(v => v.Position.X == x && v.Position.Y == y);
             return chunk != null;
         }
 
@@ -411,6 +406,8 @@ namespace VoxelGame.Worlds
                 GUI.Image(_loadingScreenTexture, new Rect(0, 0, winWidth, winHeight), Vector2.Zero, scale);
                 GUI.Label($"LOADING...", new Rect(0, 0, winWidth, winHeight), _loadingScreenStyle);
                 GUI.Label($"{perc}%", new Rect(0, 48, winWidth, winHeight), _loadingScreenStyle);
+
+                GUI.Label($"Required chunks: {_requiredChunksLoadedNum}\nLoaded chunks: {_currentChunksLoadedNum}\nChunks: {_loadedChunks.Count}\nLoad queue: {_chunksToUpdate.Count}", new Rect(10, 10, 400, 200));
             }
         }
 
@@ -445,9 +442,16 @@ namespace VoxelGame.Worlds
                         // Otherwise create new chunk
                         Chunk c = new Chunk(new Vector2(wantedX, wantedZ));
                         _newChunks.Add(c.Position);
-                        c.GenerateHeightMap();
-                        c.FillBlocks();
-
+                        if (ChunkExists(wantedX, wantedZ))
+                        {
+                            LoadChunkFromFile(c);
+                        }
+                        else
+                        {
+                            c.GenerateHeightMap();
+                            c.FillBlocks();
+                            _loadedChunks.Add(c);
+                        }
                         // Link with left neighbor
                         if (TryGetChunkAtPosition(wantedX - 1, wantedZ, out oChunk))
                         {
@@ -496,7 +500,6 @@ namespace VoxelGame.Worlds
                                 RequestChunkUpdate(oChunk, false, 7, 7, true);
                             }
                         }
-                        _loadedChunks.Add(c);
                     }
                 }
 
@@ -515,6 +518,7 @@ namespace VoxelGame.Worlds
                     // And destroy
                     var chunk = _loadedChunks[i];
                     _loadedChunks.Remove(chunk);
+                    SaveChunkToFile(chunk, false);
                     chunk.Dispose();
                 }
 
@@ -526,7 +530,7 @@ namespace VoxelGame.Worlds
 
             if (!HasFinishedInitialLoading)
             {
-                if (_currentChunksLoadedNum >= _requiredChunksLoadedNum * 2)
+                if (_currentChunksLoadedNum >= _requiredChunksLoadedNum)
                 {
                     HasFinishedInitialLoading = true;
                     Player.SetControlsActive(true);
@@ -572,32 +576,6 @@ namespace VoxelGame.Worlds
         }
 
         /// <summary>
-        /// Load from file
-        /// </summary>
-        /// <param name="path">Path</param>
-        /// <param name="pack">Package</param>
-        /// <returns>Loaded world</returns>
-        public ILoadable Load(string path, ZipFile pack)
-        {
-            if (_instance != null)
-                return null;
-
-            return JsonConvert.DeserializeObject<World>(File.ReadAllText(path));
-        }
-
-        /// <summary>
-        /// Save the world
-        /// </summary>
-        public void Save()
-        {
-            string json = JsonConvert.SerializeObject(this);
-            if (!Directory.Exists(System.IO.Path.GetDirectoryName(Path)))
-                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path));
-
-            File.WriteAllText(Path, json);
-        }
-
-        /// <summary>
         /// Dispose
         /// </summary>
         public void Dispose()
@@ -617,8 +595,12 @@ namespace VoxelGame.Worlds
             _player = null;
 
             // Clear chunks
-            foreach (var loadedChunk in _loadedChunks)
-                loadedChunk.Dispose();
+            lock (_loadedChunks)
+                foreach (var loadedChunk in _loadedChunks)
+                {
+                    SaveChunkToFile(loadedChunk, true);
+                    loadedChunk.Dispose();
+                }
 
             _loadedChunks.Clear();
             _loadedChunks = null;
@@ -631,6 +613,9 @@ namespace VoxelGame.Worlds
 
             _newChunks.Clear();
             _newChunks = null;
+
+            // Close storage
+            CloseStorage();
 
             // Clear skybox
             _skybox.Dispose();

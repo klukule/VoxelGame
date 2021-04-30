@@ -241,7 +241,7 @@ namespace VoxelGame.Worlds
         /// <param name="updateChunk">Whether to cause chunk update or not</param>
         public void PlaceBlock(int x, int y, int z, short blockIndex, bool updateChunk = true)
         {
-            if (y >= HEIGHT - 1)
+            if (y >= HEIGHT)
             {
                 Debug.Log($"Tried placing a block at: {x},{y},{z} but the Y value is too high!", DebugLevel.Warning);
                 return;
@@ -272,7 +272,7 @@ namespace VoxelGame.Worlds
                 Blocks[x, y, z].id = blockIndex;
                 Rebuild();
             }
-            else if (y < HEIGHT - 1)
+            else if (y < HEIGHT)
             {
                 Blocks[x, y, z] = new BlockState((sbyte)x, (sbyte)y, (sbyte)z, this);
                 Blocks[x, y, z].id = blockIndex;

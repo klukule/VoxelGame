@@ -1,5 +1,6 @@
 ﻿using OpenTK;
 using OpenTK.Graphics.OpenGL4;
+using System;
 using VoxelGame.Assets;
 using VoxelGame.Entities;
 using VoxelGame.Rendering;
@@ -15,6 +16,7 @@ namespace VoxelGame.UI.Menus
         private readonly GUIStyle _titleStyle = (GUIStyle)GUI.DefaultLabelStyle.Clone();
         private readonly Texture _bg;
         private string seed = "";
+        private string name = "";
 
         /// <summary>
         /// Menu to return to when exitting
@@ -33,6 +35,9 @@ namespace VoxelGame.UI.Menus
             _titleStyle.HorizontalAlignment = HorizontalAlignment.Middle;
             _titleStyle.VerticalAlignment = VerticalAlignment.Middle;
             _titleStyle.FontSize = 92;
+
+            seed = "";
+            name = "New World";
 
             base.Show();
         }
@@ -54,7 +59,8 @@ namespace VoxelGame.UI.Menus
             var centerY = winHeight * 0.5f;
 
             // Draw seed input
-            GUI.Textbox(ref seed, "World Seed", 100, new Rect(centerX - 200, centerY - 27, 400, 40));
+            GUI.Textbox(ref name, "World Name", 32, new Rect(centerX - 200, centerY - 75, 400, 40));
+            GUI.Textbox(ref seed, "World Seed", 32, new Rect(centerX - 200, centerY - 25, 400, 40));
 
             // Draw the buttons
             if (GUI.Button("Back", new Rect(centerX - 200, centerY + 25, 195, 40)))
@@ -67,8 +73,23 @@ namespace VoxelGame.UI.Menus
 
             if (GUI.Button("Apply", new Rect(centerX + 5, centerY + 25, 195, 40)))
             {
+                // If no seed is entered create new 16 chars long alphanumberic seed
+                if (string.IsNullOrEmpty(seed))
+                {
+                    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                    var stringChars = new char[16];
+                    var random = new Random();
+
+                    for (int i = 0; i < stringChars.Length; i++)
+                    {
+                        stringChars[i] = chars[random.Next(chars.Length)];
+                    }
+
+                    seed = new string(stringChars);
+                }
+
                 Debug.Log("Seed: " + seed.GetSeed());
-                _ = new World("New World", seed);
+                _ = new World(name, seed);
                 Player.SetMouseVisible(false);
 
                 Close();
