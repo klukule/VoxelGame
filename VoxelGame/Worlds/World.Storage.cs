@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using VoxelGame.Assets;
 using Dapper;
 using OpenTK;
+using VoxelGame.Containers;
 
 namespace VoxelGame.Worlds
 {
@@ -145,6 +146,72 @@ namespace VoxelGame.Worlds
                  task.Wait();*/
         }
 
+        private PlayerDTO GetPlayerFromStorage(int playerId)
+        {
+            return _storageConnection.QueryFirstOrDefault<PlayerDTO>("SELECT * FROM Players WHERE ID = @playerId LIMIT 1", new { playerId });
+        }
+
+        private void StorePlayerInStorage(PlayerDTO dto)
+        {
+            _storageConnection.Query("REPLACE INTO Players(ID, Name, PositionSerialized, InventorySerialized, MetadataSerialized) VALUES(@ID, @Name, @PositionSerialized, @InventorySerialized,@MetadataSerialized)", new
+            {
+                PositionSerialized = dto.PositionSerialized,
+                InventorySerialized = dto.InventorySerialized,
+                MetadataSerialized = dto.MetadataSerialized,
+                Name = dto.Name,
+                ID = dto.ID
+            });
+        }
+
+        // TODO: Move to player class
+        /// <summary>
+        /// Player data transfer object 
+        /// </summary>
+        private class PlayerDTO
+        {
+            public int ID { get; set; } = 0;
+            public string Name { get; set; } = "Default";
+
+            internal string PositionSerialized
+            {
+                get => JsonConvert.SerializeObject(Position);
+                set => Position = JsonConvert.DeserializeObject<Transform>(value);
+            }
+
+            public Transform Position { get; set; } = new Transform(Vector3.Zero, Vector3.Zero);
+
+
+            internal string InventorySerialized
+            {
+                get => JsonConvert.SerializeObject(Inventory);
+                set => Inventory = JsonConvert.DeserializeObject<List<ItemStack>>(value);
+            }
+
+            public List<ItemStack> Inventory { get; set; } = new List<ItemStack>();
+
+            internal string MetadataSerialized
+            {
+                get => JsonConvert.SerializeObject(Metadata);
+                set => Metadata = JsonConvert.DeserializeObject<Dictionary<string, string>>(value);
+            }
+
+            public Dictionary<string, string> Metadata { get; set; } = new Dictionary<string, string>();
+
+            public class Transform
+            {
+                [JsonConverter(typeof(Vector3Converter))]
+                public Vector3 Position { get; set; }
+                [JsonConverter(typeof(Vector3Converter))]
+                public Vector3 Rotation { get; set; }
+
+                public Transform(Vector3 position, Vector3 rotation)
+                {
+                    Position = position;
+                    Rotation = rotation;
+                }
+            }
+        }
+
         private const string CREATE_WORLD_FILE_V1 = @"
 -- World metadata table
 CREATE TABLE ""Metadata""(
@@ -172,8 +239,9 @@ CREATE TABLE ""Players""(
 
     ""ID""    INTEGER NOT NULL,
 	""Name""  TEXT NOT NULL,
-	""Position""  TEXT NOT NULL,
-	""Inventory"" TEXT NOT NULL,
+	""PositionSerialized""  TEXT NOT NULL,
+	""InventorySerialized"" TEXT NOT NULL,
+	""MetadataSerialized""  TEXT NOT NULL,
 	PRIMARY KEY(""ID"")
 );
 ";

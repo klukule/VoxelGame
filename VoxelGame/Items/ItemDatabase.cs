@@ -39,6 +39,8 @@ namespace VoxelGame.Items
         /// <returns>Item instance if found; otherwise null</returns>
         public static Item GetItem(string key)
         {
+            if (key == null) return null;
+
             if (_items.TryGetValue(key, out Item item))
                 return item;
 

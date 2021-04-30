@@ -194,6 +194,13 @@ namespace VoxelGame.Worlds
             // TODO: Use constant radius to allow for larger render distances
             _requiredChunksLoadedNum = (_worldSize + _worldSize + 1) * (_worldSize + _worldSize + 1);
 
+            // TODO: Move to player class
+            var dto = GetPlayerFromStorage(1);
+            if (dto != null)
+            {
+                _player.Inventory.ItemsList.AddRange(dto.Inventory);
+                _player.SetInitialPosition(dto.Position.Position, dto.Position.Rotation);
+            }
             // Initialize all entities
             foreach (var entity in _loadedEntities)
                 entity.Begin();
@@ -591,6 +598,20 @@ namespace VoxelGame.Worlds
             _chunkUpdateThread.Join();
             _chunkUpdateThread = null;
 
+
+            // Save player
+            var dto = new PlayerDTO()
+            {
+                ID = 1,
+                Name = "Default",
+                Inventory = Player.Inventory.ItemsList,
+                // TODO: Health & hunger
+            };
+            dto.Position.Position = Player.Position;
+            dto.Position.Rotation = Player.Rotation;
+
+            StorePlayerInStorage(dto);
+
             // Clear entities
             foreach (var entity in _loadedEntities)
                 DestroyEntity(entity);
@@ -622,6 +643,7 @@ namespace VoxelGame.Worlds
 
             // Save time
             SavePropertyToStorage("LightAngle", _lightAngle.ToString());
+
 
             // Close storage
             CloseStorage();

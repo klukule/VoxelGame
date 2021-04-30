@@ -61,6 +61,11 @@ namespace VoxelGame.Entities
         private float _lastHealthIncreaseTick;      // Last time helath regen ticked
 
         /// <summary>
+        /// Players inventory
+        /// </summary>
+        public Container Inventory => _inventory;
+
+        /// <summary>
         /// Players health
         /// </summary>
         public int Health
@@ -107,17 +112,6 @@ namespace VoxelGame.Entities
             Program.Window.MouseWheel -= InputMouseWheel;
             Input.GetAction("Sprint").KeyDown -= InputSprintDown;
             Input.GetAction("Sprint").KeyUp -= InputSprintUp;
-
-            // Destroy textures
-            // NOTE: Since there is currently only one palyer and the texture is used only by the player...
-            // ... it's ok to destroy the textures directly, in the future leave them loaded
-            _heartEmptyIcon.Dispose();
-            _heartHalfIcon.Dispose();
-            _heartIcon.Dispose();
-
-            _hungerHalfIcon.Dispose();
-            _hungerEmptyIcon.Dispose();
-            _hungerIcon.Dispose();
 
             base.Destroyed();
         }
@@ -209,6 +203,14 @@ namespace VoxelGame.Entities
             // Check if is above the block
             if (Raycast.CastVoxel(_currentWorld.WorldCamera.Position, new Vector3(0, -1, 0), 2.1f, out _))
                 _rigidbody.AddImpluse(new Vector3(0, 1, 0) * 600);
+        }
+
+        public void SetInitialPosition(Vector3 position, Vector3 rotation)
+        {
+            if (_hasHadInitialSet) return;
+            _hasHadInitialSet = true;
+            Position = position;
+            Rotation = rotation;
         }
 
         /// <summary>
@@ -456,10 +458,6 @@ namespace VoxelGame.Entities
                 Mouse.SetPosition(Program.Window.X + Program.Window.Width / 2f, Program.Window.Y + Program.Window.Height / 2f);
         }
 
-        public Container GetInventory()
-        {
-            return _inventory;
-        }
 
         public void Die()
         {

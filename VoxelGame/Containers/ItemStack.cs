@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using Newtonsoft.Json;
+using OpenTK;
 using System;
 using VoxelGame.Items;
 
@@ -24,11 +25,13 @@ namespace VoxelGame.Containers
         /// <summary>
         /// Selected item id
         /// </summary>
-        public string ItemKey { get; }
+        [JsonProperty]
+        public string ItemKey { get; private set; }
 
         /// <summary>
         /// Selected item
         /// </summary>
+        [JsonIgnore]
         public Item Item => ItemDatabase.GetItem(ItemKey);
 
         /// <summary>
@@ -43,17 +46,20 @@ namespace VoxelGame.Containers
         /// <summary>
         /// Container location
         /// </summary>
+        [JsonConverter(typeof(Vector2Converter))]
         public Vector2 LocationInContainer { get; set; }
 
         /// <summary>
         /// Parent container
         /// - used to pair floating selection with originating container
         /// </summary>
+        [JsonIgnore]
         public Container PreviousParent { get; set; }
 
         /// <summary>
         /// Whether the item stack is full or not
         /// </summary>
+        [JsonIgnore]
         public bool IsStackFull => Item != null && Item.MaxStackSize == StackSize;
 
         /// <summary>

@@ -58,7 +58,7 @@ namespace VoxelGame.Entities
                 if (dist < 0.5f) // If less than half a block away, "suck in" and add to players inventory
                 {
                     //Add to inventory
-                    World.Instance.Player.GetInventory().AddItem(_item);
+                    World.Instance.Player.Inventory.AddItem(_item);
                     World.Instance.DestroyEntity(this);
                 }
             }
